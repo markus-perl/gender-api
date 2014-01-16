@@ -1,7 +1,7 @@
 gender-api
 ==========
 
-jQuery Plugin for the famous <a href="https://gender-api.com">Gender API</a> API.
+jQuery Plugin for the famous <a href="https://gender-api.com">Gender API</a>.
 
 The gender determination api only requires a first name or an e-mail address containing a first name.
 
@@ -15,7 +15,6 @@ Usage
 -----
 
 	<script type="text/javascript" src="https://gender-api.com/js/jquery/gender.min.js"></script>
-
 
 	<script type="text/javascript">
 	$('input#firstname').genderApi({key: genderApiClientKey}).on('gender-found', function(e, result) {

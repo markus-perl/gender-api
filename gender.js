@@ -1,16 +1,35 @@
 /*!
- * gender.js v0.3
+ * gender.js v0.4
  * Copyright 2014 gender-api.com
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://github.com/markus-perl/gender-api/blob/master/LICENSE
  */
 (function ($) {
-    $.fn.genderApi = function (config) {
 
-        var $this = $(this);
+    var GenderApi = function (element, config) {
+
+        var $this = $(element);
+
         var block = false;  //only 1 request at a time
         var timeout = 500; // 500 ms
         var timer = null;
         var currentQuery = null;
+        var attached = true; //enables or disables the detection
+
+        /**
+         * Can be called to disable detection
+         * $(element).genderApi('detach');
+         */
+        $this.detachApi = function () {
+            attached = false;
+        }
+
+        /**
+         * Can be called to enable detection
+         * $(element).genderApi('attach');
+         */
+        $this.attachApi = function () {
+            attached = true;
+        }
 
         var startTimer = function () {
             if (timer) {
@@ -40,7 +59,7 @@
 
         var parse = function () {
             var value = $.trim($this.val());
-            if (value.length > 1) {
+            if (value.length > 1 && attached) {
 
                 data.name = value;
 
@@ -101,7 +120,29 @@
             }
         });
 
-        return this;
+        $this.data('genderapi', $this);
+    }
+
+    $.fn.genderApi = function (config) {
+
+        return this.each(function () {
+            var api = $(this).data('genderapi');
+
+            switch (config) {
+                case 'detach':
+                    if (api) {
+                        api.detachApi();
+                    }
+                    return;
+                case 'attach':
+                    if (api) {
+                        api.attachApi();
+                    }
+                    return;
+            }
+
+            return new GenderApi(this, config);
+        });
     }
 })
     (jQuery);

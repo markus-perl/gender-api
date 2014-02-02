@@ -1,7 +1,10 @@
+/*global window: false, $:false, document:false, jQuery:false, XDomainRequest:false*/
 /*!
- * gender.js v0.4
+ * gender.js v0.5
  * Copyright 2014 gender-api.com
  * https://github.com/markus-perl/gender-api/blob/master/LICENSE
+ *
+ *
  */
 (function ($) {
 
@@ -21,7 +24,7 @@
          */
         $this.detachApi = function () {
             attached = false;
-        }
+        };
 
         /**
          * Can be called to enable detection
@@ -29,14 +32,7 @@
          */
         $this.attachApi = function () {
             attached = true;
-        }
-
-        var startTimer = function () {
-            if (timer) {
-                clearTimeout(timer);
-            }
-            timer = setTimeout(parse, timeout);
-        }
+        };
 
         var data = {
             ip: 'auto'
@@ -57,9 +53,11 @@
         var protocol = 'https:' == document.location.protocol ? 'https://' : 'http://';
         var url = config.url ? config.url : protocol + 'gender-api.com/get';
 
-        var parse = function () {
-            var value = $.trim($this.val());
-            if (value.length > 1 && attached) {
+        $this.query = function (value, callback) {
+
+            value = $.trim(value);
+
+            if (value.length > 1) {
 
                 data.name = value;
 
@@ -80,9 +78,7 @@
 
                         xdr.onload = function () {
                             var result = $.parseJSON(xdr.responseText);
-                            if (result && result.gender) {
-                                $this.trigger('gender-found', result);
-                            }
+                            callback(result);
                             block = false;
                         };
 
@@ -100,16 +96,39 @@
                         url: url,
                         data: data,
                         dataType: 'json'
-                    }).
-                        done(function (result) {
-                            if (result.gender) {
-                                $this.trigger('gender-found', result);
-                            }
+                    }).done(function (result) {
+                            callback(result);
                             block = false;
                         });
                 }
+            } else {
+                callback({name: value, gender: null});
             }
+        };
+
+        if (config.hasOwnProperty('name') && config.callback) {
+            $this.query(config.name, config.callback);
+            return;
         }
+
+        var startTimer = function () {
+            if (timer) {
+                clearTimeout(timer);
+            }
+            timer = setTimeout(parse, timeout);
+        };
+
+        var parse = function () {
+            if (attached) {
+                var value = $this.val();
+                $this.query(value, function (result) {
+                    if (result.gender) {
+                        $this.trigger('gender-found', result);
+                    }
+                    block = false;
+                });
+            }
+        };
 
         $this.on({
             'change': parse,
@@ -121,8 +140,9 @@
         });
 
         $this.data('genderapi', $this);
-    }
+    };
 
+    /** @namespace $.fn */
     $.fn.genderApi = function (config) {
 
         return this.each(function () {
@@ -132,13 +152,15 @@
                 case 'detach':
                     if (api) {
                         api.detachApi();
+                        return api;
                     }
-                    return;
+                    return null;
                 case 'attach':
                     if (api) {
                         api.attachApi();
+                        return api;
                     }
-                    return;
+                    return null;
             }
 
             return new GenderApi(this, config);

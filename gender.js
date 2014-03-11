@@ -10,6 +10,9 @@
 
     var GenderApi = function (element, config) {
 
+        var TYPE_NAME = 'name';
+        var TYPE_EMAIL = 'email';
+
         var $this = $(element);
 
         var block = false;  //only 1 request at a time
@@ -17,6 +20,7 @@
         var timer = null;
         var currentQuery = null;
         var attached = true; //enables or disables the detection
+        var type = TYPE_NAME;
 
         /**
          * Can be called to disable detection
@@ -50,6 +54,10 @@
             data.language = config.language;
         }
 
+        if (config.type) {
+            type = config.type;
+        }
+
         var protocol = 'https:' == document.location.protocol ? 'https://' : 'http://';
         var url = config.url ? config.url : protocol + 'gender-api.com/get';
 
@@ -57,9 +65,13 @@
 
             value = $.trim(value);
 
-            if (value.length > 1) {
+            if ((type == TYPE_EMAIL && value.indexOf('@') > 0) || ( type == TYPE_NAME && value.length > 1)) {
 
-                data.name = value;
+                if (type == TYPE_EMAIL) {
+                    data.email = value;
+                } else {
+                    data.name = value;
+                }
 
                 if (block == true) return;
                 if (value == currentQuery) return;
@@ -97,11 +109,12 @@
                         data: data,
                         dataType: 'json'
                     }).done(function (result) {
-                            callback(result);
-                            block = false;
-                        });
+                        callback(result);
+                        block = false;
+                    });
                 }
-            } else {
+            }
+            else {
                 callback({name: value, gender: null});
             }
         };

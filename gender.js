@@ -179,5 +179,4 @@
             return new GenderApi(this, config);
         });
     }
-})
-    (jQuery);
+})(jQuery);
